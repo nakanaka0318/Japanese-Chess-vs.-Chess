@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>将棋 vs チェス</title>
+  <meta name="description" content="将棋の駒とチェスの駒が同じ盤で戦う異種格闘ボードゲーム。ローカル対戦・CPU対戦・オンライン対戦に対応。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%99%9F%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>将棋 <span class="vs">vs</span> チェス</h1>
+    <nav class="modes">
+      <button data-mode="local" class="mode-btn">ふたりで対戦</button>
+      <button data-mode="cpu" class="mode-btn">CPU と対戦</button>
+      <button data-mode="online" class="mode-btn">オンライン対戦</button>
+      <button id="rules-btn" class="ghost">ルール</button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="play">
+      <div class="side-bar" id="bar-top"></div>
+      <div class="board-wrap">
+        <div id="board" class="board" aria-label="盤面"></div>
+      </div>
+      <div class="side-bar" id="bar-bottom"></div>
+    </section>
+
+    <aside class="panel">
+      <div class="status" id="status">モードを選んでください</div>
+      <div class="actions">
+        <button id="resign-btn" class="ghost" disabled>投了</button>
+        <button id="flip-btn" class="ghost">盤を反転</button>
+        <button id="new-btn" class="ghost">新しい対局</button>
+      </div>
+
+      <div id="online-box" class="online-box" hidden>
+        <h2>オンライン対戦</h2>
+        <div id="online-lobby">
+          <label class="field">あなたの陣営
+            <select id="host-side">
+              <option value="S">将棋</option>
+              <option value="C">チェス</option>
+              <option value="R" selected>ランダム</option>
+            </select>
+          </label>
+          <button id="host-btn">部屋を作る</button>
+          <div class="or">または</div>
+          <div class="join-row">
+            <input id="join-code" placeholder="部屋コード" maxlength="12" autocomplete="off" spellcheck="false">
+            <button id="join-btn">参加</button>
+          </div>
+        </div>
+        <div id="online-room" hidden>
+          <p class="muted">部屋コード</p>
+          <div class="room-code" id="room-code">------</div>
+          <div class="actions">
+            <button id="copy-link-btn" class="ghost">招待リンクをコピー</button>
+            <button id="leave-btn" class="ghost">退出</button>
+          </div>
+          <p class="muted" id="net-status"></p>
+          <button id="rematch-btn" hidden>再戦（陣営を交代）</button>
+        </div>
+        <div id="chat" class="chat" hidden>
+          <div id="chat-log" class="chat-log"></div>
+          <form id="chat-form" class="join-row">
+            <input id="chat-input" placeholder="メッセージ" maxlength="200" autocomplete="off">
+            <button>送信</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="cpu-box" class="online-box" hidden>
+        <h2>CPU 対戦</h2>
+        <label class="field">あなたの陣営
+          <select id="cpu-side">
+            <option value="S">将棋</option>
+            <option value="C">チェス</option>
+          </select>
+        </label>
+        <button id="cpu-start-btn">対局開始</button>
+      </div>
+
+      <h2>棋譜</h2>
+      <ol id="log" class="log"></ol>
+    </aside>
+  </main>
+
+  <dialog id="promo-dialog">
+    <form method="dialog">
+      <p id="promo-title">成りますか？</p>
+      <div id="promo-choices" class="promo-choices"></div>
+    </form>
+  </dialog>
+
+  <dialog id="rules-dialog" class="rules">
+    <form method="dialog">
+      <h2>ルール</h2>
+      <ul>
+        <li>9×9 の盤で、<b>下が将棋軍</b>（通常の平手配置）、<b>上がチェス軍</b>。先手はチェス軍。</li>
+        <li>チェス軍の初期配置（左から）: ♜ ♞ ♝ ♞ ♚ ♛ ♝ ♞ ♜ ＋ ポーン 9 枚。9 列に合わせてナイトが 1 枚多い。</li>
+        <li>相手の王（玉／キング）を<b>詰ませたら勝ち</b>。自分の王が取られる手は指せない。動ける手がなく王手もされていなければ<b>引き分け</b>（ステイルメイト）。</li>
+        <li><b>将棋軍</b>は取ったチェスの駒を持ち駒として打てる：
+          ポーン→歩、ナイト→桂、ビショップ→角、ルーク→飛、クイーン→飛。</li>
+        <li>将棋軍の成り・打ちは本将棋どおり（敵陣3段、行き所のない駒は強制成り、二歩・打ち歩詰め禁止）。</li>
+        <li><b>チェス軍</b>は取った駒を使えない代わりに、駒そのものが強力。ポーンは初手のみ2マス進め、最下段に着くとクイーン・ルーク・ビショップ・ナイトに昇格。キャスリングとアンパッサンはなし。</li>
+        <li>400 手に達したら引き分け。</li>
+      </ul>
+      <div class="actions"><button>閉じる</button></div>
+    </form>
+  </dialog>
+
+  <script src="js/vendor/peerjs.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
